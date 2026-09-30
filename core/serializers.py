@@ -23,20 +23,26 @@ class TaskSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        # Validación que involucra más de un campo
-        if data.get("status") == "completada" and not data.get("due_date"):
+        # En un PATCH, "data" trae solo los campos enviados: lo que falte
+        # lo tomamos de la tarea que ya existe (self.instance).
+        instance = self.instance
+        status = data.get("status", instance.status if instance else None)
+        due_date = data.get("due_date", instance.due_date if instance else None)
+        project = data.get("project", instance.project if instance else None)
+
+        # Regla de la Clase 4
+        if status == "completada" and not due_date:
             raise serializers.ValidationError(
                 "No se puede marcar una tarea como completada sin fecha límite registrada."
             )
 
-        # TAREA PARA LA CASA
-        # Validación que involucra más de un campo y la instancia existente
-        status_value = data.get("status", getattr(self.instance, "status", None))
-        if status_value == "en_progreso":
-            project = data.get("project", getattr(self.instance, "project", None))
-            if project and not project.tasks.filter(status="completada").exists():
+        # Tarea de la Clase 4
+        if status == "en_progreso":
+            hay_completadas = project.tasks.filter(status="completada").exists()
+            if not hay_completadas:
                 raise serializers.ValidationError(
-                    "No se puede poner en progreso si el proyecto no tiene ninguna tarea completada."
+                    "No se puede pasar a 'en_progreso' una tarea de un proyecto "
+                    "que todavía no tiene ninguna tarea completada."
                 )
 
         return data

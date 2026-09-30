@@ -1,0 +1,30 @@
+CASO 200
+Comando: curl.exe -i -s http://127.0.0.1:8000/api/tasks/1/
+Primera línea: HTTP/1.1 200 OK
+Cuerpo: {"id":1,"project":3,"title":"Setup","description":"","priority":"media","status":"pendiente","due_date":null,"tags":[],"created_at":"2026-09-30T17:49:36.892734Z"}
+
+CASO 201
+Comando: curl.exe -i -s -X POST http://127.0.0.1:8000/api/tasks/ -H "Content-Type: application/json" -d "{\"project\": 3, \"title\": \"Nueva\"}"
+Primera línea: HTTP/1.1 201 Created
+Cuerpo: {"id":2,"project":3,"title":"Nueva","description":"","priority":"media","status":"pendiente","due_date":null,"tags":[],"created_at":"2026-09-30T17:49:37.061982Z"}
+
+CASO 400
+Comando: curl.exe -i -s -X POST http://127.0.0.1:8000/api/tasks/ -H "Content-Type: application/json" -d "{\"project\": 3}"
+Primera línea: HTTP/1.1 400 Bad Request
+Cuerpo: {"error":true,"detail":{"title":["This field is required."]}}
+
+CASO 404
+Comando: curl.exe -i -s http://127.0.0.1:8000/api/tasks/9999/
+Primera línea: HTTP/1.1 404 Not Found
+Cuerpo: {"error":true,"detail":{"detail":"No Task matches the given query."}}
+
+CASO 500
+Comando: curl.exe -i -s http://127.0.0.1:8000/api/tasks/romper/
+Primera línea: HTTP/1.1 500 Internal Server Error
+Cuerpo: {"error":true,"detail":"Error interno del servidor."}
+
+CASO 204
+Comando: curl.exe -i -s -X DELETE http://127.0.0.1:8000/api/tasks/2/
+Primera línea: HTTP/1.1 204 No Content
+Cuerpo: 
+

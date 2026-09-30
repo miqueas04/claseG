@@ -31,6 +31,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
 
 
+
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.select_related("project").prefetch_related("tags").all()
     serializer_class = TaskSerializer
