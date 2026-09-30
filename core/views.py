@@ -21,6 +21,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = TaskRepository.get_queryset()
     serializer_class = TaskSerializer
+    filterset_fields = ["status", "priority", "project"]
+    ordering_fields = ["due_date", "created_at", "priority"]
+    search_fields = ["title", "description"]
 
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
@@ -28,7 +31,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         TaskService.mark_completed(task)
         return Response(self.get_serializer(task).data)
 
-    @action(detail=False, methods=["get"])
-    def overdue(self, request):
-        tasks = TaskService.tasks_overdue(self.get_queryset())
-        return Response(self.get_serializer(tasks, many=True).data)
+@action(detail=False, methods=["get"])
+def overdue(self, request):
+    tasks = TaskService.tasks_overdue(self.get_queryset())
+    page = self.paginate_queryset(tasks)
+    if page is not None:
+        return self.get_paginated_response(self.get_serializer(page, many=True).data)
+    return Response(self.get_serializer(tasks, many=True).data)
