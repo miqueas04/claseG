@@ -29,6 +29,7 @@ class TaskSerializer(serializers.ModelSerializer):
                 "No se puede marcar una tarea como completada sin fecha límite registrada."
             )
 
+        # TAREA PARA LA CASA
         # Validación que involucra más de un campo y la instancia existente
         status_value = data.get("status", getattr(self.instance, "status", None))
         if status_value == "en_progreso":
