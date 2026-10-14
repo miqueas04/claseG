@@ -1,5 +1,6 @@
+from django.contrib.auth.models import User
 from django.http import JsonResponse
-from rest_framework import viewsets
+from rest_framework import generics, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -7,7 +8,7 @@ from .models import Project
 from .repositories import TaskRepository
 from .serializers import ProjectSerializer, TaskSerializer
 from .services import TaskService, ProjectService
-
+from .serializer_auth import RegisterSerializer
 
 def health_check(request):
     return JsonResponse({"status": "ok", "service": "TaskFlow API"})
@@ -44,3 +45,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         if page is not None:
             return self.get_paginated_response(self.get_serializer(page, many=True).data)
         return Response(self.get_serializer(tasks, many=True).data)
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
