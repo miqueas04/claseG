@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from .models import Project
 from .repositories import TaskRepository
 from .serializers import ProjectSerializer, TaskSerializer
-from .services import TaskService
+from .services import TaskService, ProjectService
 
 
 def health_check(request):
@@ -14,8 +14,14 @@ def health_check(request):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
+    queryset = Project.objects.all().order_by("id")
     serializer_class = ProjectSerializer
+
+    @action(detail=True, methods=["get"])
+    def summary(self, request, pk=None):
+        project = self.get_object()
+        data = ProjectService.project_summary(project)
+        return Response(data)
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -31,10 +37,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         TaskService.mark_completed(task)
         return Response(self.get_serializer(task).data)
 
-@action(detail=False, methods=["get"])
-def overdue(self, request):
-    tasks = TaskService.tasks_overdue(self.get_queryset())
-    page = self.paginate_queryset(tasks)
-    if page is not None:
-        return self.get_paginated_response(self.get_serializer(page, many=True).data)
-    return Response(self.get_serializer(tasks, many=True).data)
+    @action(detail=False, methods=["get"])
+    def overdue(self, request):
+        tasks = TaskService.tasks_overdue(self.get_queryset())
+        page = self.paginate_queryset(tasks)
+        if page is not None:
+            return self.get_paginated_response(self.get_serializer(page, many=True).data)
+        return Response(self.get_serializer(tasks, many=True).data)
