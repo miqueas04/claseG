@@ -1,15 +1,15 @@
 from datetime import date
+import nh3
 from rest_framework import serializers
 from .models import Project, Task, Tag
 from .services import HolidayService
-
-
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ["id", "name"]
+
 
 class TaskSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
@@ -27,6 +27,9 @@ class TaskSerializer(serializers.ModelSerializer):
             return False
         return HolidayService.is_holiday(obj.due_date)
 
+    def validate_description(self, value):
+        return nh3.clean(value, tags=set())
+
     def validate_due_date(self, value):
         if value and value < date.today():
             raise serializers.ValidationError("La fecha límite no puede ser en el pasado.")
@@ -41,7 +44,6 @@ class TaskSerializer(serializers.ModelSerializer):
 
         # TAREA PARA LA CASA
         # Validación que involucra más de un campo y la instancia existente
-        
         status_value = data.get("status", getattr(self.instance, "status", None))
         if status_value == "en_progreso":   
             project = data.get("project", getattr(self.instance, "project", None))
@@ -52,11 +54,10 @@ class TaskSerializer(serializers.ModelSerializer):
 
         return data
 
+
 class ProjectSerializer(serializers.ModelSerializer):
     tasks = TaskSerializer(many=True, read_only=True)
 
     class Meta:
         model = Project
         fields = ["id", "name", "description", "tasks", "created_at"]
-
-
